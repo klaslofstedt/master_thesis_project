@@ -65,7 +65,6 @@ class MyTCP:
 
 class MyFiles:
     # Functions concerning input/output files
-    buffer = 1024
     def __init__(self, fileOutput, fileInput = None):
         self.fileInput = fileInput
         self.fileOutput = fileOutput
@@ -94,7 +93,7 @@ class MyFiles:
 server = MyTCP("169.254.0.2", 5006)
 server.TCP_ConnectToClient()
 # CLIENT (connect to server, PC)
-# initialize the TCP/IP connection for eth1 (pi_1 & server)
+# initialize the TCP/IP connection for eth1 (pi_1 & PC)
 client = MyTCP("192.168.199.203", 5472)
 client.TCP_ConnectToServer()
 print "Create file object"
