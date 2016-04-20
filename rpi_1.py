@@ -41,8 +41,8 @@ class MyTCP:
         self.conn.close()
 
     def TCP_SendFile(self, tempFile):
-        tempFile.OpenFile()
-        for piece in temp.ReadFile(1024):
+        tempFile.File_Open()
+        for piece in temp.File_Read(1024):
             self.conn.send(piece)
         self.conn.close()
 
@@ -72,34 +72,57 @@ class MyFiles:
         self.fileSize = 0
         self.fileOpen = object
 
-    def RemoveFile(self):
+    def File_Remove(self):
         try:
             os.remove(self.fileOutput)
         except OSError:
                 pass
 
-    def OpenFile(self):
+    def File_Open(self):
         self.fileOpen = open(self.fileInput)
 
-    def ReadFile(self, size = 1024):
+    def File_Read(self, size = 1024):
         while True:
             data = self.fileOpen.read(size)
             if not data:
                 break
             yield data
 
+class MySerial:
+    def __init__(self, port, baud):
+        self.port = port
+        self.baud = baud
+        self.isOpen = False
+        self.ser = object
+
+    def Serial_Open(self):
+        if self.isOpen == False:
+            self.ser = serial.Serial(
+                port = self.port.get(),
+                baudrate = baud, 
+                parity = serial.PARITY_NONE,
+                stopbits = serial.STOPBITS_ONE,
+                bytesize = serial.EIGHTBITS,
+                timeout = 0)
+            self.isOpen = True
+            print "Serial port ", self.port, " open"
+        else:
+            print self.port, " is already open"
+
+    def Serial_Send(self):
+
 # SERVER (connect to client, RPi_2)
 # initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
 server = MyTCP("169.254.0.2", 5006)
 server.TCP_ConnectToClient()
 # CLIENT (connect to server, PC)
-# initialize the TCP/IP connection for eth1 (pi_1 & PC)
+# initialize the TCP/IP connection for wlan0 (pi_1 & PC)
 client = MyTCP("192.168.199.203", 5472)
 client.TCP_ConnectToServer()
 print "Create file object"
 outputFile = MyFiles("output.txt")
 print "Remove old file"
-outputFile.RemoveFile()
+outputFile.File_Remove()
 print "Waiting on data from PC..."
 client.TCP_ReceiveToFile(outputFile)
 print "Program finished!"
