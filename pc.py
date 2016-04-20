@@ -91,7 +91,6 @@ class MySerial:
     
 class MyFiles:
     # Functions concerning input/output files
-    buffer = 1024
     def __init__(self, fileOutput, fileInput = None):
         self.fileInput = fileInput
         self.fileOutput = fileOutput
@@ -107,7 +106,7 @@ class MyFiles:
 
     def SendFileTCP(self, tempTCP):
         self.OpenFile()
-        for piece in self.ReadFile(buffer):
+        for piece in self.ReadFile(1024):
             tempTCP.conn.send(piece)
         tempTCP.conn.close()
 
