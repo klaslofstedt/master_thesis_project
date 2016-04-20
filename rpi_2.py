@@ -1,9 +1,8 @@
+# Clean this shit up
 # client.py
 import socket
 import time
 import serial
-
-# initialize the UART connection
 
 # CLIENT
 # initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
