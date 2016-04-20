@@ -26,7 +26,7 @@ class MyGUI(tk.Tk):
         m1.config(height = 1, width = 10)
         b1 = tk.Button(text = "Open File", command = file1.BrowseFile) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
         b1.config(height = 1, width = 10)
-        b3 = tk.Button(text = "Connect TCP/IP", command = tcpRpi1.ConnectTcp) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
+        b3 = tk.Button(text = "Connect TCP/IP", command = server.TCP_ConnectToClient) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
         b3.config(height = 1, width = 10)
         l1 = tk.Label(self, text="Param#1")
         e1 = tk.Entry(self)
@@ -61,7 +61,13 @@ class MyTCP:
         self.conn = object
         self.tcpOpen = False
 
-    def ConnectTcp(self):
+    def TCP_SendFile(self, tempFile):
+        tempFile.OpenFile()
+        for piece in tempFile.ReadFile(1024):
+            self.conn.send(piece)
+        self.conn.close()
+
+    def TCP_ConnectToClient(self):
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         tcp.bind((self.host, self.port))
@@ -103,12 +109,6 @@ class MyFiles:
             os.remove(self.fileOutput)
         except OSError:
             pass
-
-    def SendFileTCP(self, tempTCP):
-        self.OpenFile()
-        for piece in self.ReadFile(1024):
-            tempTCP.conn.send(piece)
-        tempTCP.conn.close()
 
     def OpenFile(self):
         self.fileOpen = open(self.fileInput)
@@ -187,7 +187,8 @@ def Run():
             usb.close()
             '''
             ts = time.time()
-            file1.SendFileTCP(tcpRpi1)
+            server.TCP_SendFile(file1)
+            #file1.SendFileTCP(server)
             print "Data sent in: ", time.time() - ts, "sec"
                 #with open("output.txt", "a") as outfile:
                 #    outfile.write(piece)
@@ -206,7 +207,7 @@ def mainTask():
 file1 = MyFiles("output.txt")
 # Initialize a TCP/IP connection with RPi 1
 # Use the ip address of the client (this PC)
-tcpRpi1 = MyTCP("192.168.199.203", 5472)
+server = MyTCP("192.168.199.203", 5472)
 # Initialize the USB connection
 serial1 = MySerial()
 # Create the GUI
