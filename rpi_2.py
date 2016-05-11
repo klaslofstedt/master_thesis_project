@@ -37,7 +37,7 @@ class MyTCP:
         print "Successfully connected to server!"
 
     def TCP_SendPiece(self, data):
-        self.conn.send(data)
+        self.conn.send(str(data))
         self.conn.close()
 
     def TCP_SendFile(self, tempFile):
@@ -45,6 +45,8 @@ class MyTCP:
         for piece in temp.File_Read(1024):
             self.conn.send(piece)
         self.conn.close()
+        # needed?
+        self.isOpen = False
 
     def TCP_ReceiveByte(self):
         # buffer = 1
@@ -62,6 +64,7 @@ class MyTCP:
             if not data: break
         self.conn.close()
         print "output.txt created"
+        self.isOpen = False
 
 class MyFiles:
     # Functions concerning input/output files
@@ -113,16 +116,21 @@ class MySerial:
 
 # SERVER (connect to client, RPi_2)
 # initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
-client = MyTCP("169.254.0.2", 5008)
-client.TCP_ConnectToServer()
+#client = MyTCP("169.254.0.2", 5010)
+#client.TCP_ConnectToServer()
 # CLIENT (connect to server, PC)
 # initialize the TCP/IP connection for wlan0 (pi_1 & pi_2)
-server = MyTCP("192.168.199.118", 5500)
+server = MyTCP("192.168.199.118", 5505)
 server.TCP_ConnectToClient()
 print "Create file object"
 outputFile = MyFiles("output.txt")
 print "Remove old file"
 outputFile.File_Remove()
 print "Waiting on data from RPi_1 on wlan0..."
+ts = time.time()
 server.TCP_ReceiveToFile(outputFile)
+transferTime = time.time() - ts
 print "Program finished!"
+print "Transfer Time: ", transferTime
+server.TCP_ConnectToClient()
+server.TCP_SendPiece(transferTime)
