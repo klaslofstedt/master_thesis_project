@@ -39,47 +39,51 @@ class MyTCP:
     def TCP_SendPiece(self, data):
         self.conn.send(data)
         self.conn.close()
+        self.isOpen = False
 
     def TCP_SendFile(self, tempFile):
         tempFile.File_Open()
-        for piece in temp.File_Read(1024):
+        for piece in tempFile.File_Read(1024):
             self.conn.send(piece)
         self.conn.close()
+        self.isOpen = False
 
+    # is really a TCP_ReceiveString()
     def TCP_ReceiveByte(self):
         # buffer = 1
         data = self.conn.recv(1024)
-        print "Received: ", data
+        #print "Received: ", data
         self.conn.close()
+        self.isOpen = False
         return data
 
     def TCP_ReceiveToFile(self, tempFile):
         buffer = 1024
         while True:
             data = self.conn.recv(buffer)
-            with open(tempFile.fileOutput, "a") as outfile:
+            with open(tempFile.fileTemp, "a") as outfile:
                 outfile.write(data)
             if not data: break
         self.conn.close()
         print "output.txt created"
+        self.isOpen = False
 
 class MyFiles:
     # Functions concerning input/output files
-    def __init__(self, fileOutput, fileInput = None):
-        self.fileInput = fileInput
-        self.fileOutput = fileOutput
-        self.fileOpen = False
+    def __init__(self, fileTemp):
+        self.fileTemp = fileTemp
+        self.isOpen = False
         self.fileSize = 0
         self.fileOpen = object
 
     def File_Remove(self):
         try:
-            os.remove(self.fileOutput)
+            os.remove(self.fileTemp)
         except OSError:
                 pass
 
     def File_Open(self):
-        self.fileOpen = open(self.fileInput)
+        self.fileOpen = open(self.fileTemp)
 
     def File_Read(self, size = 1024):
         while True:
@@ -109,20 +113,34 @@ class MySerial:
         else:
             print self.port, " is already open"
 
-    def Serial_Send(self):
+    #def Serial_Send(self):
 
 # SERVER (connect to client, RPi_2)
 # initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
-server = MyTCP("169.254.0.2", 5006)
-server.TCP_ConnectToClient()
+# IP of this eth0
+
+# This is probably not needed since we will implement the algorithm
+# on pi1 and not pi2
+#server = MyTCP("169.254.0.2", 5010)
+#server.TCP_ConnectToClient()
 # CLIENT (connect to server, PC)
 # initialize the TCP/IP connection for wlan0 (pi_1 & PC)
+# IP from PC wlan0
 client = MyTCP("192.168.199.203", 5472)
 client.TCP_ConnectToServer()
 print "Create file object"
-outputFile = MyFiles("output.txt")
+file1 = MyFiles("output.txt")
 print "Remove old file"
-outputFile.File_Remove()
+file1.File_Remove()
 print "Waiting on data from PC..."
-client.TCP_ReceiveToFile(outputFile)
-print "Program finished!"
+client.TCP_ReceiveToFile(file1)
+client = MyTCP("192.168.199.118", 5505)
+client.TCP_ConnectToServer()
+client.TCP_SendFile(file1)
+print "finished"
+client.TCP_ConnectToServer()
+transferTime = client.TCP_ReceiveByte()
+print "Transfer time: ", transferTime
+client = MyTCP("192.168.199.203", 5472)
+client.TCP_ConnectToServer()
+client.TCP_SendPiece(transferTime)
