@@ -22,12 +22,12 @@ class MyGUI(tk.Tk):
 
         serial1.port = tk.StringVar(self)
         serial1.port.set("Open Port")
-        m1 = tk.OptionMenu(self, serial1.port, *serialPorts())
+        m1 = tk.OptionMenu(self, serial1.port, *Serial_Ports())
         m1.config(height = 1, width = 10)
-        b1 = tk.Button(text = "Open File", command = file1.BrowseFile) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
+        b1 = tk.Button(text = "Open File", command = file1.File_Browse) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
         b1.config(height = 1, width = 10)
-        b3 = tk.Button(text = "Connect TCP/IP", command = server.TCP_ConnectToClient) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
-        b3.config(height = 1, width = 10)
+        #b3 = tk.Button(text = "Connect TCP/IP", command = server.TCP_ConnectToClient) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
+        #b3.config(height = 1, width = 10)
         l1 = tk.Label(self, text="Param#1")
         e1 = tk.Entry(self)
         e1.insert(0,"0")
@@ -37,7 +37,7 @@ class MyGUI(tk.Tk):
         b2 = tk.Button(text = "Run", command = Run)
         m1.pack(in_=toolbar, side="left")
         b1.pack(in_=toolbar, side="left")
-        b3.pack(in_=toolbar, side="left")
+        #b3.pack(in_=toolbar, side="left")
         l1.pack(in_=toolbar, side="left")
         e1.pack(in_=toolbar, side="left")
         l2.pack(in_=toolbar, side="left")
@@ -62,10 +62,17 @@ class MyTCP:
         self.tcpOpen = False
 
     def TCP_SendFile(self, tempFile):
-        tempFile.OpenFile()
-        for piece in tempFile.ReadFile(1024):
+        tempFile.File_Open()
+        for piece in tempFile.File_Read(1024):
             self.conn.send(piece)
         self.conn.close()
+        self.tcpOpen = False
+
+    def TCP_ReceiveString(self):
+        data = self.conn.recv(1024)
+        self.conn.close()
+        self.isOpen = False
+        return data
 
     def TCP_ConnectToClient(self):
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -82,7 +89,7 @@ class MySerial:
         self.port = None
         self.serialOpen = False
 
-    def OpenSerial(self):
+    def Serial_Open(self):
         if self.port.get() != ("Open Port"):
             if self.serialOpen == False:
                 usb = serial.Serial(
@@ -100,20 +107,20 @@ class MyFiles:
     def __init__(self, fileOutput, fileInput = None):
         self.fileInput = fileInput
         self.fileOutput = fileOutput
-        self.fileOpen = False
+        self.isOpen = False
         self.fileSize = 0
         self.fileOpen = object
 
-    def RemoveFile(self):
+    def File_Remove(self):
         try:
             os.remove(self.fileOutput)
         except OSError:
             pass
 
-    def OpenFile(self):
+    def File_Open(self):
         self.fileOpen = open(self.fileInput)
 
-    def BrowseFile(self):
+    def File_Browse(self):
         self.fileInput = fd.askopenfilename()
         print "Using file: ", self.fileInput
         self.fileSize = os.path.getsize(self.fileInput)
@@ -123,16 +130,16 @@ class MyFiles:
             print "File size: ", self.fileSize / 1000, "kB"
         else:
             print "File size: ", self.fileSize, " bytes"
-        self.fileOpen = True
+        self.isOpen = True
 
-    def ReadFile(self, size = 1024):
+    def File_Read(self, size = 1024):
         while True:
             data = self.fileOpen.read(size)
             if not data:
                 break
             yield data
 
-def serialPorts():
+def Serial_Ports():
     # Lists serial port names
     # - raises EnvironmentError on unsupported or unknown platforms
     # - returns a list of the serial ports available on the system
@@ -160,41 +167,51 @@ def serialPorts():
     return result
 
 def Run():
+    '''
     if serial1.port.get() == ("Open Port"):
         sys.stderr.write("Error: No serial port open\n")
-        if file1.fileOpen == False:
+        if file1.isOpen == False:
             sys.stderr.write("Error: No file open\n")
         else:
             pass
     else:
-        if file1.fileOpen == False:
-            sys.stderr.write("Error: No file open\n")
-        else:
-            # Connect to USB/Serial
-            print "Running..."
-            '''
-            if(usb.isOpen() == False):
-                usb.open()
-            usb.write(str(os.path.getsize(inputFile))+'\n')
-            usb.close()
-            time.sleep(0.05)
-            if(usb.isOpen() == False):
-                usb.open()
-            ts = time.time()
-            for piece in ReadFile(infile):
-                usb.write(piece)
-                time.sleep(0.0005)
-            usb.close()
-            '''
-            ts = time.time()
-            server.TCP_SendFile(file1)
-            #file1.SendFileTCP(server)
-            print "Data sent in: ", time.time() - ts, "sec"
-                #with open("output.txt", "a") as outfile:
-                #    outfile.write(piece)
+    '''
+    if file1.isOpen == False:
+        sys.stderr.write("Error: No file open\n")
+    else:
+        # Connect to USB/Serial
+        print "Running..."
+        '''
+        if(usb.isOpen() == False):
+            usb.open()
+        usb.write(str(os.path.getsize(inputFile))+'\n')
+        usb.close()
+        time.sleep(0.05)
+        if(usb.isOpen() == False):
+            usb.open()
+        ts = time.time()
+        for piece in File_Read(infile):
+            usb.write(piece)
+            time.sleep(0.0005)
+        usb.close()
+        '''
+        # Initialize a TCP/IP connection with RPi 1
+        # Use the ip address of the client (this PC)
+        server = MyTCP("192.168.199.203", 5472)
+        server.TCP_ConnectToClient()
+
+        ts = time.time()
+        server.TCP_SendFile(file1)
+        #file1.SendFileTCP(server)
+        print "Data sent in: ", time.time() - ts, "sec"
+            #with open("output.txt", "a") as outfile:
+            #    outfile.write(piece)
+        server.TCP_ConnectToClient()
+        transferTime = server.TCP_ReceiveString()
+        print "Transfer Time: ", transferTime
             
 def mainTask():
-    serial1.OpenSerial()
+    serial1.Serial_Open()
     app.after(1000, mainTask)
 
 #class MyOptionMenu(tk.OptionMenu):
@@ -205,9 +222,6 @@ def mainTask():
 
 # Browse a file and save the result in "output.txt"
 file1 = MyFiles("output.txt")
-# Initialize a TCP/IP connection with RPi 1
-# Use the ip address of the client (this PC)
-server = MyTCP("192.168.199.203", 5472)
 # Initialize the USB connection
 serial1 = MySerial()
 # Create the GUI
