@@ -93,6 +93,7 @@ class MyFiles:
             yield data
 
 class MySerial:
+    buffer = 1024
     def __init__(self, port, baud):
         self.port = port
         self.baud = baud
@@ -113,8 +114,26 @@ class MySerial:
         else:
             print self.port, " is already open"
 
-    #def Serial_Send(self):
+    def Serial_SendFile(self, tempFile):
+        tempFile.File_Open()
+        for piece in tempFile.File_Read(MySerial.buffer):
+            self.write(piece)
+        self.close()
+        self.isOpen = False
 
+    def Serial_ReadFile(self, tempFile):
+        while self.inWaiting() > 0:
+            data = self.read(MySerial.buffer)
+            with open(tempFile.fileTemp, "a") as outfile:
+                outfile.write(data)
+            if not data: break
+        self.close()
+        print "output.txt created"
+        self.isOpen = False
+
+    #def Serial_Send(self):
+xbee = MySerial("/dev/ttyUSB0", 115200)
+xbee.Serial_Open()
 # SERVER (connect to client, RPi_2)
 # initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
 # IP of this eth0
