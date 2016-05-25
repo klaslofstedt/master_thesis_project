@@ -1,6 +1,6 @@
-import MyFiles
-import MyTCP
-import MySerial
+from MyFiles import MyFiles
+from MyTCP import MyTCP
+from MySerial import MySerial
 import math
 import Tkinter as tk
 import sys
@@ -19,12 +19,12 @@ class MyGUI(tk.Tk):
         self.text.pack(side="top", fill="both", expand=True) # width?
         self.text.tag_configure("stderr", foreground="#b22222") # error color
         sys.stdout = MyTextRedirector(self.text, "stdout")
-        sys.stderr = MyTextRedirector(self.text, "stderr")
+        #sys.stderr = MyTextRedirector(self.text, "stderr")
 
-        serial1.port = tk.StringVar(self)
-        serial1.port.set("Open Port")
-        m1 = tk.OptionMenu(self, serial1.port, *Serial_Ports())
-        m1.config(height = 1, width = 10)
+        #serial1.port = tk.StringVar(self)
+        #serial1.port.set("Open Port")
+        #m1 = tk.OptionMenu(self, serial1.port, *Serial_Ports())
+        #m1.config(height = 1, width = 10)
         b1 = tk.Button(text = "Open File", command = file1.File_Browse) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
         b1.config(height = 1, width = 10)
         #b3 = tk.Button(text = "Connect TCP/IP", command = server.TCP_ConnectToClient) #.grid(row = 0, column = 1).config(height=1, width= gridWidth)
@@ -36,7 +36,7 @@ class MyGUI(tk.Tk):
         e2 = tk.Entry(self)
         e2.insert(0,"0")
         b2 = tk.Button(text = "Run", command = Run)
-        m1.pack(in_=toolbar, side="left")
+        #m1.pack(in_=toolbar, side="left")
         b1.pack(in_=toolbar, side="left")
         #b3.pack(in_=toolbar, side="left")
         l1.pack(in_=toolbar, side="left")
@@ -55,6 +55,7 @@ class MyTextRedirector(object):
         self.widget.insert("end", str, (self.tag,))
         self.widget.configure(state="disabled")
 
+'''
 def Serial_Ports():
     # Lists serial port names
     # - raises EnvironmentError on unsupported or unknown platforms
@@ -81,6 +82,7 @@ def Serial_Ports():
     else:
         result.append("No ports available")
     return result
+'''
 
 def Run():
     '''
@@ -123,11 +125,11 @@ def Run():
             #with open("output.txt", "a") as outfile:
             #    outfile.write(piece)
         server.TCP_ConnectToClient()
-        transferTime = server.TCP_ReceiveString()
+        transferTime = server.TCP_ReceivePiece()
         print "Transfer Time: ", transferTime
             
 def mainTask():
-    serial1.Serial_Open()
+    #serial1.Serial_Open()
     app.after(1000, mainTask)
 
 #class MyOptionMenu(tk.OptionMenu):
@@ -139,7 +141,7 @@ def mainTask():
 # Browse a file and save the result in "output.txt"
 file1 = MyFiles("output.txt")
 # Initialize the USB connection
-serial1 = MySerial()
+#serial1 = MySerial()
 # Create the GUI
 app = MyGUI()
 app.title("IoT Testbedd")
