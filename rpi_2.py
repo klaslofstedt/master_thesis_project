@@ -59,7 +59,7 @@ class MyTCP:
         buffer = 1024
         while True:
             data = self.conn.recv(buffer)
-            with open(tempFile.fileOutput, "a") as outfile:
+            with open(tempFile.fileTemp, "a") as outfile:
                 outfile.write(data)
             if not data: break
         self.conn.close()
@@ -68,21 +68,20 @@ class MyTCP:
 
 class MyFiles:
     # Functions concerning input/output files
-    def __init__(self, fileOutput, fileInput = None):
-        self.fileInput = fileInput
-        self.fileOutput = fileOutput
+    def __init__(self, fileTemp):
+        self.fileTemp = fileTemp
         self.fileOpen = False
         self.fileSize = 0
         self.fileOpen = object
 
     def File_Remove(self):
         try:
-            os.remove(self.fileOutput)
+            os.remove(self.fileTemp)
         except OSError:
                 pass
 
     def File_Open(self):
-        self.fileOpen = open(self.fileInput)
+        self.fileOpen = open(self.fileTemp)
 
     def File_Read(self, size = 1024):
         while True:
@@ -92,6 +91,7 @@ class MyFiles:
             yield data
 
 class MySerial:
+    buffer = 1024
     def __init__(self, port, baud):
         self.port = port
         self.baud = baud
@@ -101,34 +101,63 @@ class MySerial:
     def Serial_Open(self):
         if self.isOpen == False:
             self.ser = serial.Serial(
-                port = self.port.get(),
-                baudrate = baud, 
+                port = self.port,
+                baudrate = self.baud, 
                 parity = serial.PARITY_NONE,
                 stopbits = serial.STOPBITS_ONE,
                 bytesize = serial.EIGHTBITS,
-                timeout = 0)
+                timeout = 1)
             self.isOpen = True
             print "Serial port ", self.port, " open"
         else:
             print self.port, " is already open"
 
     #def Serial_Send(self):
+    def Serial_SendFile(self, tempFile):
+        tempFile.File_Open()
+        for piece in tempFile.File_Read(MySerial.buffer):
+            self.ser.write(piece)
+        self.ser.close()
+        self.isOpen = False
 
+    def Serial_ReadFile(self, tempFile):
+        global ts
+        print "1"
+        while self.ser.inWaiting() < 1:
+            pass
+        ts = time.time()
+        while self.ser.inWaiting() > 0:
+            print "2"
+            data = self.ser.read(MySerial.buffer)
+            with open(tempFile.fileTemp, "a") as outfile:
+                print "3"
+                outfile.write(data)
+            if not data: break
+        self.ser.close()
+        print "output.txt created"
+        self.isOpen = False
+
+xbee = MySerial("/dev/ttyUSB0", 115200)
+xbee.Serial_Open()
 # SERVER (connect to client, RPi_2)
 # initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
 #client = MyTCP("169.254.0.2", 5010)
 #client.TCP_ConnectToServer()
 # CLIENT (connect to server, PC)
 # initialize the TCP/IP connection for wlan0 (pi_1 & pi_2)
-server = MyTCP("192.168.199.118", 5505)
-server.TCP_ConnectToClient()
 print "Create file object"
 outputFile = MyFiles("output.txt")
 print "Remove old file"
 outputFile.File_Remove()
 print "Waiting on data from RPi_1 on wlan0..."
-ts = time.time()
+server = MyTCP("192.168.199.118", 5512)
+#ts = time.time()
+'''
+server.TCP_ConnectToClient()
 server.TCP_ReceiveToFile(outputFile)
+'''
+###################################### max buffer 1024 or 1020?
+xbee.Serial_ReadFile(outputFile)
 transferTime = time.time() - ts
 print "Program finished!"
 print "Transfer Time: ", transferTime
