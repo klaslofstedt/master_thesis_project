@@ -1,7 +1,7 @@
 # client.py (for Rpi_1):
-import MyTCP
-import MySerial
-import MyFiles
+from MyTCP import MyTCP
+from MySerial import MySerial
+from MyFiles import MyFiles
 import time
 
 xbee = MySerial("/dev/ttyUSB0", 115200)
@@ -18,14 +18,14 @@ print "Remove old file"
 outputFile.File_Remove()
 print "Waiting on data from RPi_1 on wlan0..."
 server = MyTCP("192.168.199.118", 5512)
-#ts = time.time()
+ts = time.time()
 '''
 server.TCP_ConnectToClient()
 server.TCP_ReceiveToFile(outputFile)
 '''
 ###################################### max buffer 1024 or 1020?
 xbee.Serial_ReadFile(outputFile)
-transferTime = time.time() - ts
+transferTime = str(time.time() - ts)
 print "Program finished!"
 print "Transfer Time: ", transferTime
 server.TCP_ConnectToClient()
