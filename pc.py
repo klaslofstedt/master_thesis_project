@@ -101,43 +101,6 @@ class MySerial:
                     timeout=1)
                 self.serialOpen = True
                 print "Opened USB"
-    
-class MyFiles:
-    # Functions concerning input/output files
-    def __init__(self, fileOutput, fileInput = None):
-        self.fileInput = fileInput
-        self.fileOutput = fileOutput
-        self.isOpen = False
-        self.fileSize = 0
-        self.fileOpen = object
-
-    def File_Remove(self):
-        try:
-            os.remove(self.fileOutput)
-        except OSError:
-            pass
-
-    def File_Open(self):
-        self.fileOpen = open(self.fileInput)
-
-    def File_Browse(self):
-        self.fileInput = fd.askopenfilename()
-        print "Using file: ", self.fileInput
-        self.fileSize = os.path.getsize(self.fileInput)
-        if self.fileSize > 1000*1000:
-            print "File size: ", self.fileSize / (1000*1000), "MB"
-        elif self.fileSize > 1000:
-            print "File size: ", self.fileSize / 1000, "kB"
-        else:
-            print "File size: ", self.fileSize, " bytes"
-        self.isOpen = True
-
-    def File_Read(self, size = 1024):
-        while True:
-            data = self.fileOpen.read(size)
-            if not data:
-                break
-            yield data
 
 def Serial_Ports():
     # Lists serial port names
