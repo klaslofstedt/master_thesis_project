@@ -1,7 +1,7 @@
 # client.py (for PC, but server for Rpi_2):
-import MyTCP
-import MySerial
-import MyFiles
+from MyTCP import MyTCP
+from MySerial import MySerial
+from MyFiles import MyFiles
 import time
 
 xbee = MySerial("/dev/ttyUSB0", 115200)
