@@ -103,31 +103,33 @@ class MySerial:
     def Serial_Open(self):
         if self.isOpen == False:
             self.ser = serial.Serial(
-                port = self.port.get(),
-                baudrate = baud, 
+                port = self.port,
+                baudrate = self.baud, 
                 parity = serial.PARITY_NONE,
                 stopbits = serial.STOPBITS_ONE,
                 bytesize = serial.EIGHTBITS,
-                timeout = 0)
+                timeout = 1)
             self.isOpen = True
             print "Serial port ", self.port, " open"
         else:
             print self.port, " is already open"
 
     def Serial_SendFile(self, tempFile):
+        print "1"
         tempFile.File_Open()
         for piece in tempFile.File_Read(MySerial.buffer):
-            self.write(piece)
-        self.close()
+            print "2"
+            self.ser.write(piece)
+        self.ser.close()
         self.isOpen = False
 
     def Serial_ReadFile(self, tempFile):
-        while self.inWaiting() > 0:
-            data = self.read(MySerial.buffer)
+        while self.ser.inWaiting() > 0:
+            data = self.ser.read(MySerial.buffer)
             with open(tempFile.fileTemp, "a") as outfile:
                 outfile.write(data)
             if not data: break
-        self.close()
+        self.ser.close()
         print "output.txt created"
         self.isOpen = False
 
@@ -153,9 +155,12 @@ print "Remove old file"
 file1.File_Remove()
 print "Waiting on data from PC..."
 client.TCP_ReceiveToFile(file1)
-client = MyTCP("192.168.199.118", 5505)
+client = MyTCP("192.168.199.118", 5512)
+'''
 client.TCP_ConnectToServer()
 client.TCP_SendFile(file1)
+'''
+xbee.Serial_SendFile(file1)
 print "finished"
 client.TCP_ConnectToServer()
 transferTime = client.TCP_ReceiveByte()
