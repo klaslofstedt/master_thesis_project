@@ -1,9 +1,10 @@
+import MyFiles
+import MyTCP
+import MySerial
 import math
-import socket
 import Tkinter as tk
 import sys
 import glob
-import os
 import serial
 import time
 import tkFileDialog as fd
@@ -53,54 +54,6 @@ class MyTextRedirector(object):
         self.widget.configure(state="normal")
         self.widget.insert("end", str, (self.tag,))
         self.widget.configure(state="disabled")
-
-class MyTCP:
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self.conn = object
-        self.tcpOpen = False
-
-    def TCP_SendFile(self, tempFile):
-        tempFile.File_Open()
-        for piece in tempFile.File_Read(1024):
-            self.conn.send(piece)
-        self.conn.close()
-        self.tcpOpen = False
-
-    def TCP_ReceiveString(self):
-        data = self.conn.recv(1024)
-        self.conn.close()
-        self.isOpen = False
-        return data
-
-    def TCP_ConnectToClient(self):
-        tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        tcp.bind((self.host, self.port))
-        # Todo: a timeout to avoid program crash
-        tcp.listen(1)
-        self.conn, addr = tcp.accept()
-        print "Successfully accepted the client!"
-        self.tcpOpen = True
-
-class MySerial:
-    def __init__(self):
-        self.port = None
-        self.serialOpen = False
-
-    def Serial_Open(self):
-        if self.port.get() != ("Open Port"):
-            if self.serialOpen == False:
-                usb = serial.Serial(
-                    port=self.port.get(),
-                    baudrate=115200,
-                    parity=serial.PARITY_NONE,
-                    stopbits=serial.STOPBITS_ONE,
-                    bytesize=serial.EIGHTBITS,
-                    timeout=1)
-                self.serialOpen = True
-                print "Opened USB"
 
 def Serial_Ports():
     # Lists serial port names
