@@ -95,7 +95,7 @@ xbee = MySerial("/dev/ttyUSB0", 115200)
 #    xbee.Serial_Open()
 #    xbee.Serial_SendFile(file1)
 #    time.sleep(2)
-logFile = MyFiles("logs/serial_log.txt")
+logFile = MyFiles("../logs/serial_log.txt")
 logFile.File_Remove()
 #logFile.File_Push("startup times:")
 totalTime = 0
