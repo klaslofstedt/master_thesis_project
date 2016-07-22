@@ -4,8 +4,8 @@ from MySerial import MySerial
 from MyFiles import MyFiles
 import time
 
-xbee = MySerial("/dev/ttyUSB0", 115200)
-xbee.Serial_Open()
+#xbee = MySerial("/dev/ttyUSB0", 115200)
+#xbee.Serial_Open()
 # SERVER (connect to client, RPi_2)
 # initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
 # IP of this eth0
@@ -25,12 +25,10 @@ print "Remove old file"
 file1.File_Remove()
 print "Waiting on data from PC..."
 client.TCP_ReceiveToFile(file1)
-client = MyTCP("192.168.199.118", 5512)
-'''
+client = MyTCP("192.168.199.118", 5513)
 client.TCP_ConnectToServer()
 client.TCP_SendFile(file1)
-'''
-xbee.Serial_SendFile(file1)
+#xbee.Serial_SendFile(file1)
 print "finished"
 client.TCP_ConnectToServer()
 transferTime = client.TCP_ReceivePiece()
