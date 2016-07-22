@@ -37,3 +37,15 @@ class MyFiles:
             if not data:
                 break
             yield data
+
+    def File_Push(self, data):
+        with open(self.fileTemp, "a") as outfile:
+            outfile.write(data + '\n')
+
+    def File_List(self, data):
+        with open(self.fileTemp, "a") as outfile:
+            outfile.write(data + ',')
+
+    def File_GetSize(self):
+        return os.path.getsize(self.fileTemp)
+
