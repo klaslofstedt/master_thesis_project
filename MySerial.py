@@ -36,13 +36,11 @@ class MySerial:
         self.Serial_Flush()
 
     def Serial_SendFile(self, tempFile):
-        global ts2
         wait = 0
         tempSize = int(math.ceil(tempFile.File_GetSize()/float(1000)))
         
         print "tempSize", tempSize
         tempFile.File_Open()
-        ts2 = time.time()
 
         flag = 0
         flag2 = 0
@@ -62,15 +60,16 @@ class MySerial:
         print "finished"
     
     def Serial_ReadFile(self, tempFile):
-        global ts
-        while self.ser.inWaiting() < 1:
-            pass
-        ts = time.time()
-        while self.ser.inWaiting() > 0:
-            data = self.ser.read(MySerial.buffer)
+        wait = 0.1
+        ############################### SET FILE SIZE STATICALLY ###
+        Size = 40
+        print "loop times: ", Size
+        data = 0
+        for x in range(0, Size):
+            data = self.ser.read(1000)
+            self.ser.write("1")
+            #put the data in a file
             with open(tempFile.fileTemp, "a") as outfile:
                 outfile.write(data)
             if not data: break
-        self.ser.close()
-        print "output.txt created"
-        self.isOpen = False
+        print "finished"
