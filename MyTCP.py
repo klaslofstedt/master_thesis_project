@@ -40,7 +40,7 @@ class MyTCP:
         self.conn.close()
         self.isOpen = False
 
-    def TCP_SendFile(self, tempFile, buffer = 1024):
+    def TCP_SendFile(self, tempFile, buffer = 1000):
         tempFile.File_Open()
         for piece in tempFile.File_Read(buffer):
             self.conn.send(piece)
@@ -48,14 +48,14 @@ class MyTCP:
         self.isOpen = False
 
     # is really a TCP_ReceiveString()
-    def TCP_ReceivePiece(self, buffer = 1024):
+    def TCP_ReceivePiece(self, buffer = 1000):
         data = self.conn.recv(buffer)
         self.conn.close()
         self.isOpen = False
         return data
 
     def TCP_ReceiveToFile(self, tempFile):
-        buffer = 1024
+        buffer = 1000
         while True:
             data = self.conn.recv(buffer)
             with open(tempFile.fileTemp, "a") as outfile:

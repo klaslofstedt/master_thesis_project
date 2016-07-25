@@ -4,7 +4,7 @@ import serial
 import MyFiles
 
 class MySerial:
-    buffer = 1024
+    buffer = 1000
     def __init__(self, port, baud):
         self.port = port
         self.baud = baud
