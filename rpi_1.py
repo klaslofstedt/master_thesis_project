@@ -6,8 +6,11 @@ import time
 import threading
 
 class serialThread(threading.Thread):
-    def __init__(self):
+    def __init__(self, tempMySerial, tempFile):
         threading.Thread.__init__(self)
+        self.tempMySerial = tempMySerial
+        self.tempFile = tempFile
+
     def run(self):
         print "Start serial"
         serialWrite()
@@ -43,9 +46,9 @@ def serialWrite():
 
 #while True:
 # Connect to PC to get the file that should be processed
-client = MyTCP("192.168.199.203", 5472)
+client = MyTCP("192.168.199.203", 5473)
 client.TCP_ConnectToServer()
-file1 = MyFiles("output.txt")
+file1 = MyFiles("file1.txt")
 print "Remove old file"
 file1.File_Remove()
 print "Waiting on data from PC..."
@@ -53,7 +56,11 @@ client.TCP_ReceiveToFile(file1)
 print "Received file from PC"
 
 # TODO Calculate variables here
-
+# split file1 into file_tcp file_zigbee file_bluetooth
+file_tcp = MyFiles("file_tcp.txt")
+file_zigbee = MyFiles("file_zigbee.txt")
+file_tcp.File_Remove()
+file_zigbee.File_Remove()
 
 # Open serial port for Zigbee
 xbee = MySerial("/dev/ttyUSB0", 115200)
@@ -61,12 +68,12 @@ xbee.Serial_Open()
 #xbee.Serial_SendFile(file1)
 
 # Connect to RPI2
-client = MyTCP("192.168.199.118", 5518)
+client = MyTCP("192.168.199.118", 5519)
 client.TCP_ConnectToServer()
 
 # Multi-thread the transmissions
-thread1 = serialThread()
-thread2 = tcpThread(client, file1)
+thread1 = tcpThread(client, file1)
+thread2 = serialThread(xbee, file_zigbee)
 
 # Start the threads
 thread1.start()
@@ -83,7 +90,7 @@ transferTime = client.TCP_ReceivePiece()
 # Transfer time is fucky. Starts when the program starts rather
 # than when the transmission starts
 print "Transfer time: ", transferTime
-client = MyTCP("192.168.199.203", 5472)
+client = MyTCP("192.168.199.203", 5473)
 client.TCP_ConnectToServer()
 client.TCP_SendPiece(transferTime)
 # Main loop does nothing
