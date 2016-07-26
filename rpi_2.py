@@ -3,30 +3,70 @@ from MyTCP import MyTCP
 from MySerial import MySerial
 from MyFiles import MyFiles
 import time
+import threading
 
+class serialThread(threading.Thread):
+    def __init__(self, tempMySerial, tempFile):
+        threading.Thread.__init__(self)
+        self.tempMySerial = tempMySerial
+        self.tempFile = tempFile
+
+    def run(self):
+        print "Start serial"
+        serialRead()
+        print "Finished serial"
+
+class tcpThread(threading.Thread):
+    def __init__(self, tempMyTCP, tempFile):
+        threading.Thread.__init__(self)
+        self.tempMyTCP = tempMyTCP
+        self.tempFile = tempFile
+
+    def run(self):
+        print "Start tcp"
+        self.tempMyTCP.TCP_ReceiveToFile(self.tempFile)
+        print "Finished tcp"
+
+def serialRead():
+    for x in range(0, 20):
+        print "Receiving lot of serial data"
+        time.sleep(1)
+
+# Connect to RPI1 and create empty files
+file1 = MyFiles("file1.txt")
+file_tcp = MyFiles("file_tcp.txt")
+file_zigbee = MyFiles("file_zigbee.txt")
+file1.File_Remove()
+file_tcp.File_Remove()
+file_zigbee.File_Remove()
+print "Waiting on data from RPi_1 on wlan0..."
+server = MyTCP("192.168.199.118", 5519)
+server.TCP_ConnectToClient()
+ts = time.time()
+
+# Open serial port for zigbee
 xbee = MySerial("/dev/ttyUSB0", 115200)
 xbee.Serial_Open()
-# SERVER (connect to client, RPi_2)
-# initialize the TCP/IP connection for eth0 (pi_1 & pi_2)
-#client = MyTCP("169.254.0.2", 5010)
-#client.TCP_ConnectToServer()
-# CLIENT (connect to server, PC)
-# initialize the TCP/IP connection for wlan0 (pi_1 & pi_2)
-print "Create file object"
-outputFile = MyFiles("output.txt")
-print "Remove old file"
-outputFile.File_Remove()
-print "Waiting on data from RPi_1 on wlan0..."
-server = MyTCP("192.168.199.118", 5512)
-ts = time.time()
-'''
-server.TCP_ConnectToClient()
-server.TCP_ReceiveToFile(outputFile)
-'''
-###################################### max buffer 1024 or 1020?
-xbee.Serial_ReadFile(outputFile)
+
+# Multi-thread the transmissions
+thread1 = tcpThread(server, file1)
+thread2 = serialThread(xbee, file_zigbee)
+
+# Start the threads
+thread1.start()
+thread2.start()
+
+# Wait until both threads are finished until processing of data
+while (thread1.isAlive() or thread2.isAlive()):
+    time.sleep(0.5)
+print "Threads are finished"
+
+# TODO merge the two files into one
+#server.TCP_ReceiveToFile(outputFile)
+#xbee.Serial_ReadFile(outputFile)
+
+
 transferTime = str(time.time() - ts)
-print "Program finished!"
 print "Transfer Time: ", transferTime
 server.TCP_ConnectToClient()
 server.TCP_SendPiece(transferTime)
