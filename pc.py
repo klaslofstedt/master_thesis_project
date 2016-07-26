@@ -115,7 +115,7 @@ def Run():
         '''
         # Initialize a TCP/IP connection with RPi 1
         # Use the ip address of the client (this PC)
-        server = MyTCP("192.168.199.203", 5472)
+        server = MyTCP("192.168.199.203", 5473)
         server.TCP_ConnectToClient()
 
         ts = time.time()
